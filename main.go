@@ -10,7 +10,10 @@ import (
 )
 
 func main() {
-	cfg := config.Load()
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatalf("invalid configuration: %v", err)
+	}
 
 	database, err := db.Connect(cfg.DBPath)
 	if err != nil {
@@ -18,7 +21,7 @@ func main() {
 	}
 
 	authHandler := auth.NewHandler(database, cfg.JWTSecret, cfg.GoogleClientID)
-	r := router.New(authHandler, cfg.JWTSecret)
+	r := router.New(authHandler, cfg.JWTSecret, cfg.AllowedOrigins, cfg.AllowLocalhost)
 
 	log.Printf("NIMO backend running on port %s", cfg.Port)
 	if err := r.Run(":" + cfg.Port); err != nil {
